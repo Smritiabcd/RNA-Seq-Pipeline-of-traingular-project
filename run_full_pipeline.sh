@@ -1,15 +1,3 @@
-#!/bin/bash
-set -euo pipefail
-
-# ==========================================================================
-# Bee Virome Pipeline — Full Combined Workflow
-# Raw FastQC -> fastp -> Trimmed FastQC -> MultiQC
-#   -> Host removal (Apis cerana -> Apis mellifera -> Varroa)
-#   -> Alignment to new virus -> stats/coverage/depth
-# Loops over ALL paired samples in raw_fastq/
-# ==========================================================================
-
-# ---- CONFIG ----
 PROJECT_DIR="/mnt/d/bee_immune_analysis"
 RAW_DIR="$PROJECT_DIR/raw_fastq"
 QC_DIR="$PROJECT_DIR/qc"
@@ -26,30 +14,30 @@ NEW_VIRUS="$PROJECT_DIR/references/newvirus.fasta"
 THREADS=8
 FASTQC_THREADS=4
 
-# ---- SETUP DIRECTORIES ----
+
 mkdir -p "$QC_DIR/fastqc_raw" "$QC_DIR/fastqc_trimmed" "$QC_DIR/fastp_reports" \
          "$QC_DIR/multiqc_final" "$TRIM_DIR" "$HOST_REMOVED_DIR" "$ALIGN_DIR" "$LOG_DIR"
 
-# ==========================================================================
+
 # STEP 1: FastQC on RAW reads (all samples together)
-# ==========================================================================
+
 echo "[$(date)] STEP 1: FastQC (raw) — all samples"
 cd "$RAW_DIR"
 fastqc *.fq.gz -o "$QC_DIR/fastqc_raw" -t "$FASTQC_THREADS" \
     2> "$LOG_DIR/fastqc_raw.log"
 
-# ==========================================================================
+
 # STEP 2: Indexing host + virus reference genomes (once, before the loop)
-# ==========================================================================
+
 echo "[$(date)] STEP 2: Indexing reference genomes (if needed)"
 [ -f "${APIS_CERANA}.bwt" ]    || bwa index "$APIS_CERANA"    2>> "$LOG_DIR/bwa_index.log"
 [ -f "${APIS_MELLIFERA}.bwt" ] || bwa index "$APIS_MELLIFERA" 2>> "$LOG_DIR/bwa_index.log"
 [ -f "${VARROA}.bwt" ]         || bwa index "$VARROA"         2>> "$LOG_DIR/bwa_index.log"
 [ -f "${NEW_VIRUS}.bwt" ]      || bwa index "$NEW_VIRUS"      2>> "$LOG_DIR/bwa_index.log"
 
-# ==========================================================================
+
 # MAIN LOOP — per-sample: fastp -> trimmed FastQC -> host removal -> virus alignment
-# ==========================================================================
+
 cd "$RAW_DIR"
 for r1 in *_1.fq.gz; do
     SAMPLE=$(basename "$r1" _1.fq.gz)
@@ -176,9 +164,9 @@ for r1 in *_1.fq.gz; do
 
 done
 
-# ==========================================================================
+
 # STEP 7: MultiQC — combined report across raw FastQC, trimmed FastQC, fastp
-# ==========================================================================
+
 echo ""
 echo "[$(date)] STEP 7: MultiQC — combined report"
 cd "$QC_DIR"
