@@ -129,7 +129,7 @@ logs/                        # stderr from every tool call, per sample
 Reads are called as a positive detection when, per sample:
 
 - **≥10% genome coverage breadth**, and
-- **≥10 mapped reads** (mean depth > 1 used as a quick proxy in the script; apply the ≥10-read threshold explicitly when reporting)
+- **≥10 mapped reads** 
 
 These are printed live during the run and also derivable from `aligned/newvirus/*_coverage.txt`:
 
@@ -137,8 +137,3 @@ These are printed live during the run and also derivable from `aligned/newvirus/
 awk 'NR>1 && $6>10 && $7>1' aligned/newvirus/*_coverage.txt
 ```
 
-## Notes
-
-- `set -euo pipefail` is set — the script stops on the first failing command rather than continuing silently.
-- Sample throughput is sequential (one sample fully through the pipeline before the next starts). For 14 samples × 3 rounds of host-genome BWA-MEM + 1 viral alignment, expect a long runtime on modest hardware — consider running samples in parallel batches (e.g. via GNU `parallel` or a job array) if wall-clock time matters.
-- MultiQC only aggregates FastQC + fastp outputs; BAM-level stats (flagstat/coverage/depth) are per-sample text files, not currently pulled into the MultiQC report.
